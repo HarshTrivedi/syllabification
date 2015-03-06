@@ -47,3 +47,15 @@ threshold: 400 -> (13074 / 40058)
 threshold: 500 -> (12918 / 40058)
 threshold: 600 -> (12679 / 40058)
 
+4. MOP with diphtong-hiatus problem solved using Muller's idea of counting frequencies of vowel diagrams and 2 vowels seperated by consonant
+
+	11017 correct of total 40058 : 27.50 %age
+
+
+5. Applying 4 with optimized threshold (150)
+
+	12383 correct of total 40058 : 30.91 %age
+
+
+
+
