@@ -22,4 +22,5 @@ word_syllabification.each do |word , syllabification|
 end
 
 ap "Correctly tagged are: #{correctly_tagged} of total #{word_syllabification.size}"
+ap "Percentage : #{correctly_tagged.to_f / word_syllabification.size}"
 # ap correctly_tagged.to_f / word_syllabification.size
