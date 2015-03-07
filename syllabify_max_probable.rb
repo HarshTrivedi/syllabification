@@ -144,40 +144,40 @@ def most_probable_syllabification( possible_syllabifications )
 	# ap possible_syllabifications
 	for possible_syllabification in possible_syllabifications
 		syllables = possible_syllabification.split("-")
-		probability = 1
+		probability = 0
 		# ap "-----"
 		for syllable in syllables
-			to_be_matched = syllable.match(/[aeiou]+/).to_a.first
-			if syllable == syllables.first
-				# ap "pre #{$pre}"
-				base_frequency = $syllables.select{|x| not x.match(/^#{$pre}.*/).to_a.empty? }.size
-				# ap "first : #{base_frequency}"
-			elsif syllable == syllables.last
-				base_frequency = $syllables.select{|x| not x.match(/.*#{$post}$/).to_a.empty? }.size				
-				# ap "last  : #{base_frequency}"
-			else			
-				base_frequency = $syllables.select{|x| not x.match(/#{to_be_matched}/).to_a.empty? }.size
-				# probability_hash[possible_syllabification] += ($syllables_frequencies[syllable].to_i || 0)
-				# ap "other #{base_frequency}"
-			end
+			# to_be_matched = syllable.match(/[aeiou]+/).to_a.first
+			# if syllable == syllables.first
+			# 	# ap "pre #{$pre}"
+			# 	base_frequency = $syllables.select{|x| not x.match(/^#{$pre}.*/).to_a.empty? }.size
+			# 	# ap "first : #{base_frequency}"
+			# elsif syllable == syllables.last
+			# 	base_frequency = $syllables.select{|x| not x.match(/.*#{$post}$/).to_a.empty? }.size				
+			# 	# ap "last  : #{base_frequency}"
+			# else			
+			# 	base_frequency = $syllables.select{|x| not x.match(/#{to_be_matched}/).to_a.empty? }.size
+			# 	# probability_hash[possible_syllabification] += ($syllables_frequencies[syllable].to_i || 0)
+			# 	# ap "other #{base_frequency}"
+			# end
 			num_freq = ($syllables_frequencies[syllable].to_i || 0).to_f 
-			base_frequency += 1
-			num_freq += 1
+			# base_frequency += 1
+			# num_freq += 1
 			# ap "BASE PROBLEM" if base_frequency == 1
 			# ap "NUM  PROBLEM" if num_freq == 0
-
-			probability += Math.log2( num_freq / (base_frequency.to_f))
+			probability += num_freq 
+			# probability += Math.log2( num_freq / (base_frequency.to_f))
 		end
 		probability_hash[possible_syllabification] = probability
 	end
 	# ap probability_hash
-	probability_hash.to_a.sort_by(&:last).last.first
+	probability_hash.to_a.max_by(&:last).first
 end
 
 
 # (possible_syllabifications("beasansign"))
 
-ap most_probable_syllabification(possible_syllabifications("aboriginal"))
+# ap most_probable_syllabification(possible_syllabifications("aboriginal"))
 
 def tag(word)
 	most_probable_syllabification(possible_syllabifications(word))
