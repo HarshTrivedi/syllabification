@@ -174,3 +174,15 @@ def most_probable_syllabification( possible_syllabifications )
 	probability_hash.to_a.sort_by(&:last).last.first
 end
 
+
+# (possible_syllabifications("beasansign"))
+
+ap most_probable_syllabification(possible_syllabifications("aboriginal"))
+
+def tag(word)
+	most_probable_syllabification(possible_syllabifications(word))
+end
+
+# .select{|x| not x.match(/#{"h"}/).to_a.empty? }.size
+
+
