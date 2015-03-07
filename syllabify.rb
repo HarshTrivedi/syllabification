@@ -55,7 +55,8 @@ def frequency_of_onset(right)
 	# ap $legal_onsets_hash
 end
 
-def tag(hyphenated_word)
+def tag(word)
+	hyphenated_word = hyphenate(word)
 	parts = hyphenated_word.split("-")
 	character_tag_array = parts.join().split("")
 	character_tag_array.map!{|x| [x , "undefined"]}
