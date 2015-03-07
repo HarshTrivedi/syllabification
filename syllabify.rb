@@ -1,5 +1,7 @@
 require "awesome_print"
 require "csv"
+require File.join( Dir.pwd , "vowel_syllabifications.rb")
+require File.join( Dir.pwd , "probabilistic_random.rb")
 
 legal_onsets = CSV.read('legal_onsets.csv')
 $legal_onsets_hash = Hash[*legal_onsets.flatten(1)]
@@ -8,6 +10,9 @@ $legal_onsets_hash = Hash[*legal_onsets.flatten(1)]
 diphtong_hiatus_freq = CSV.read('diphtong_hiatus_freqs.csv')
 $diphtong_hiatus_freq = Hash[*diphtong_hiatus_freq.map{|x| [x[0] , [x[1] , x[2]]]}.flatten(1)]
 
+
+$vowel_cluster_syllabification_freqs = CSV.read('vowel_cluster_syllabification_freqs.csv')
+# example element of array above: [ "aa", "a-a", "10"]
 
 def is_vowel(char)
  	not char.gsub(/[aeiou]/).to_a.empty?
@@ -35,11 +40,33 @@ def hyphenate(word)
 	parts << part
 	
 	hyphenated_word = parts.map(&:join).join("-")
-	#Solve diphtong , hyatus prbolem
-	match = hyphenated_word.gsub(/[aeiou][aeiou]/).to_a.first
-	if match and ($diphtong_hiatus_freq[match][0] < $diphtong_hiatus_freq[match][1])
-		hyphenated_word[ hyphenated_word.gsub(/[aeiou][aeiou]/).to_a.first]="#{match[0]}-#{match[1]}"
+	# #Solve diphtong , hyatus prbolem
+	# match = hyphenated_word.gsub(/[aeiou][aeiou]/).to_a.first
+	# if match and ($diphtong_hiatus_freq[match][0] < $diphtong_hiatus_freq[match][1])
+	# 	hyphenated_word[ hyphenated_word.gsub(/[aeiou][aeiou]/).to_a.first]="#{match[0]}-#{match[1]}"
+	# end
+	# return hyphenated_word
+
+
+	#Solve Vowel Cluster problem
+	#Each vowel-cluster gets replaced by most appropriate split for it.
+	hyphenated_word.gsub!(/[aeiou][aeiou]+/) do |match|
+		# ap "match : #{match}"
+		vowel_syllabifications = get_possible_vowel_syllabifications(match)
+		# ap vowel_syllabifications
+		vowel_syllabification_frequencies =  vowel_syllabifications.map{|vowel_syllabification|  $vowel_cluster_syllabification_freqs.select{|x| x[1] == vowel_syllabification}.first[2] rescue 1   }
+		# ap vowel_syllabification_frequencies
+		base_frequency = $vowel_cluster_syllabification_freqs.select{|x| x[0] == match}.inject(0){|sum , i| sum + i[2].to_i }
+		# ap "Vowel freq #{vowel_syllabification_frequencies}"
+		# ap "base freq #{base_frequency}"
+		probabilities = vowel_syllabification_frequencies.map{|x| (x.to_f / (base_frequency.to_f + 1))} 
+		# ap probabilities.inspect
+		probabilistic_random_index = probabilistic_random(probabilities)
+		# ap probabilistic_random_index
+		# ap "selected :#{vowel_syllabifications[probabilistic_random_index]}"
+		vowel_syllabifications[probabilistic_random_index]
 	end
+	# ap hyphenated_word
 	return hyphenated_word
 end
 
@@ -56,16 +83,20 @@ def frequency_of_onset(right)
 end
 
 def tag(word)
+	# ap word
 	hyphenated_word = hyphenate(word)
+	# ap hyphenated_word
 	parts = hyphenated_word.split("-")
+	# ap parts
 	character_tag_array = parts.join().split("")
 	character_tag_array.map!{|x| [x , "undefined"]}
 	current_char_index = 0
 	nuclie_count = 1
 	
 	confusing_parts = []
-	
+	# ap "parts #{parts}"
 	parts.each do |part| 
+		# ap part
 		if part == parts.first and is_consonant(part[0])
 			part.split("").each{|char| 
 				character_tag_array[current_char_index][1] = "Onset:#{nuclie_count}"
@@ -174,5 +205,6 @@ def tag(word)
 
 end
 
-
-ap tag(hyphenate("zirconium"))
+# def tag(word)
+# ap hyphenate "zoo"
+# end
