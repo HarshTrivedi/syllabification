@@ -58,4 +58,24 @@ threshold: 600 -> (12679 / 40058)
 
 
 
+6. Finding Maximum Probable Syllabifications from the possible syllabification
+
+	Assumptions:
+	a. The letters with and previous to first vowel cluster and letters with and after to last vowel cluster happen to be in the same syllable.
+
+	b. Vowel clusters lie in same syllable.
+
+	c. 2 vowels seperated by consonants should fall in different syllables.
+
+
+	Experiment 1 : (Couting probability of syllabification using summation of frequencies of individual consistuent syllables in it)
+
+		10745 correct of total 40058: 26.82 %age
+	
+	Experiment 2 : (Counting probability of syllabification using summation of actual probability of it being a syllable given the fact that syllable contains the consituent vowel cluster.)
+
+
+		917 correct of total 2152 : 42.21 %age 
+
+
 
