@@ -153,7 +153,6 @@ def possible_syllabifications(word)
 				end
 			end
 			##
-			return possible_syllabifications
 		end
 		# ap possible_syllabifications
 		return possible_syllabifications
