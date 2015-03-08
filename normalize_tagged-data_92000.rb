@@ -1,6 +1,6 @@
 require("awesome_print")
 require("csv")
-
+require 'unidecoder'
 
 normalized_data = []
 
@@ -9,8 +9,10 @@ File.open("tagged-data_92000.txt" , "r") do |f|
 		if not line.strip.empty?	
 			word , syllabification = line.strip.split("=")
 			word = word.downcase
-			syllabification = syllabification.split(/[^\w]/).join("-").downcase
-			normalized_data << [word , syllabification]
+			syllabification = syllabification.split(/[^\w]/).join("-").downcase.to_ascii
+			if syllabification.match(/--+/).to_a.empty? and (syllabification.gsub(/\w/).to_a.size == word.gsub(/\w/).to_a.size)
+				normalized_data << [word , syllabification] 
+			end
 		end
 	end
 end
