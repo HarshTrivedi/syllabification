@@ -119,6 +119,8 @@ def tag(word)
 	###
 	prefix , word = split_prefix(word)
 	word , suffix = split_suffix(word)
+	return prefix if word.empty? and suffix.empty?
+	return suffix if word.empty? and prefix.empty?
 	return [prefix , suffix].join("-") if word.empty?
 	####
 
