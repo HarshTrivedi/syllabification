@@ -7,12 +7,44 @@ legal_onsets = CSV.read('legal_onsets.csv')
 $legal_onsets_hash = Hash[*legal_onsets.flatten(1)]
 
 
+
 diphtong_hiatus_freq = CSV.read('diphtong_hiatus_freqs.csv')
 $diphtong_hiatus_freq = Hash[*diphtong_hiatus_freq.map{|x| [x[0] , [x[1] , x[2]]]}.flatten(1)]
 
 
 $vowel_cluster_syllabification_freqs = CSV.read('vowel_cluster_syllabification_freqs.csv')
 # example element of array above: [ "aa", "a-a", "10"]
+
+
+$prefix_frequencies = CSV.read("prefix_scores_92000.csv")
+$prefix_frequencies = $prefix_frequencies.select{|x| x.last.to_f > 0.50}
+$prefix_frequencies_hash =  Hash[*$prefix_frequencies.flatten(1)]
+
+$suffix_frequencies = CSV.read("suffix_scores_92000.csv")
+$suffix_frequencies = $suffix_frequencies.select{|x| x.last.to_f >= 0.50}
+
+$suffix_frequencies_hash =  Hash[*$suffix_frequencies.flatten(1)]
+
+
+def split_suffix(word)
+	suffixes_possible = $suffix_frequencies.select{|suffix|  not word.match(/#{suffix[0]}$/).to_a.empty? }
+	suffix = suffixes_possible.sort_by{|x| x[1].to_i}.last.first rescue ""
+	word_dup = word.dup
+	word_dup.gsub!(/#{suffix}$/ , "") if not suffix.empty?
+	return word_dup , suffix 
+end
+
+
+def split_prefix(word)
+	prefixes_possible = $prefix_frequencies.select{|prefix|  not word.match(/^#{prefix[0]}/).to_a.empty? }
+	prefix = prefixes_possible.sort_by{|x| x[1]}.last.first rescue ""
+	word_dup = word.dup
+	word_dup.gsub!(/^#{prefix}/ , "") if not prefix.empty?
+	return prefix , word_dup
+end
+
+
+
 
 def is_vowel(char)
  	not char.gsub(/[aeiou]/).to_a.empty?
@@ -23,6 +55,7 @@ def is_consonant(char)
 end
 
 def hyphenate(word)
+	# ap "WORD IS #{word}"
 	parts = []
 	chars = word.split("")
 	types = ["vowel" , "consonant"]
@@ -48,24 +81,24 @@ def hyphenate(word)
 	# return hyphenated_word
 
 
-	#Solve Vowel Cluster problem
-	#Each vowel-cluster gets replaced by most appropriate split for it.
-	hyphenated_word.gsub!(/[aeiou][aeiou]+/) do |match|
-		# ap "match : #{match}"
-		vowel_syllabifications = get_possible_vowel_syllabifications(match)
-		# ap vowel_syllabifications
-		vowel_syllabification_frequencies =  vowel_syllabifications.map{|vowel_syllabification|  $vowel_cluster_syllabification_freqs.select{|x| x[1] == vowel_syllabification}.first[2] rescue 1   }
-		# ap vowel_syllabification_frequencies
-		base_frequency = $vowel_cluster_syllabification_freqs.select{|x| x[0] == match}.inject(0){|sum , i| sum + i[2].to_i }
-		# ap "Vowel freq #{vowel_syllabification_frequencies}"
-		# ap "base freq #{base_frequency}"
-		probabilities = vowel_syllabification_frequencies.map{|x| (x.to_f / (base_frequency.to_f + 1))} 
-		# ap probabilities.inspect
-		probabilistic_random_index = probabilistic_random(probabilities)
-		# ap probabilistic_random_index
-		# ap "selected :#{vowel_syllabifications[probabilistic_random_index]}"
-		vowel_syllabifications[probabilistic_random_index]
-	end
+	# Solve Vowel Cluster problem
+	# Each vowel-cluster gets replaced by most appropriate split for it.
+	# hyphenated_word.gsub!(/[aeiou][aeiou]+/) do |match|
+	# 	# ap "match : #{match}"
+	# 	vowel_syllabifications = get_possible_vowel_syllabifications(match)
+	# 	# ap vowel_syllabifications
+	# 	vowel_syllabification_frequencies =  vowel_syllabifications.map{|vowel_syllabification|  $vowel_cluster_syllabification_freqs.select{|x| x[1] == vowel_syllabification}.first[2] rescue 1   }
+	# 	# ap vowel_syllabification_frequencies
+	# 	base_frequency = $vowel_cluster_syllabification_freqs.select{|x| x[0] == match}.inject(0){|sum , i| sum + i[2].to_i }
+	# 	# ap "Vowel freq #{vowel_syllabification_frequencies}"
+	# 	# ap "base freq #{base_frequency}"
+	# 	probabilities = vowel_syllabification_frequencies.map{|x| (x.to_f / (base_frequency.to_f + 1))} 
+	# 	# ap probabilities.inspect
+	# 	probabilistic_random_index = probabilistic_random(probabilities)
+	# 	# ap probabilistic_random_index
+	# 	# ap "selected :#{vowel_syllabifications[probabilistic_random_index]}"
+	# 	vowel_syllabifications[probabilistic_random_index]
+	# end
 	# ap hyphenated_word
 	return hyphenated_word
 end
@@ -83,7 +116,12 @@ def frequency_of_onset(right)
 end
 
 def tag(word)
-	# ap word
+	###
+	prefix , word = split_prefix(word)
+	word , suffix = split_suffix(word)
+	return [prefix , suffix].join("-") if word.empty?
+	####
+
 	hyphenated_word = hyphenate(word)
 	# ap hyphenated_word
 	parts = hyphenated_word.split("-")
@@ -152,8 +190,22 @@ def tag(word)
 		syllabified << "-" if nos[i+1] != nos[i]
 	end
 	syllabified.tap(&:pop).join("")
-	syllabified.join
-	# ap syllabified
+	syllabified = syllabified.join("")
+
+
+	# ap "#{prefix}  : #{syllabified}  :  #{suffix}"
+
+	if suffix.empty? and prefix.empty?
+		syllabified_word = syllabified
+	elsif prefix.empty?
+		syllabified_word = [ syllabified , suffix].join("-") if prefix.empty?
+	elsif suffix.empty?
+		syllabified_word = [ prefix , syllabified ].join("-")	
+	else
+		syllabified_word = [ prefix , syllabified , suffix].join("-")
+	end
+	return syllabified_word
+	ap syllabified_word
 
 
 
@@ -205,6 +257,4 @@ def tag(word)
 
 end
 
-# def tag(word)
-# ap hyphenate "zoo"
-# end
+ap tag("vulgarism")
