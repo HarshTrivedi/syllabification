@@ -7,6 +7,46 @@ require File.join( Dir.pwd , "probabilistic_random.rb")
 $vowel_cluster_syllabification_freqs = CSV.read('vowel_cluster_syllabification_freqs.csv')
 # example element of array above: [ "aa", "a-a", "10"]
 
+$block_frequency_in_syllables = CSV.read('block_frequency_in_syllables.csv')
+$block_frequency_in_syllables = Hash[*$block_frequency_in_syllables.flatten(1)]
+
+$auto_updating_block_frequency_in_syllables = Hash.new
+
+$hash_of_matrix = Hash.new(true)
+
+
+$prefix_frequencies = CSV.read("prefix_scores_92000.csv")
+$prefix_frequencies = $prefix_frequencies.select{|x| x.last.to_f > 0.60}
+$prefix_frequencies_hash =  Hash[*$prefix_frequencies.flatten(1)]
+
+$suffix_frequencies = CSV.read("suffix_scores_92000.csv")
+$suffix_frequencies = $suffix_frequencies.select{|x| x.last.to_f >= 0.60}
+
+$suffix_frequencies_hash =  Hash[*$suffix_frequencies.flatten(1)]
+
+
+def split_suffix(word)
+	suffixes_possible = $suffix_frequencies.select{|suffix|  not word.match(/#{suffix[0]}$/).to_a.empty? }
+	suffix = suffixes_possible.sort_by{|x| x[1].to_i}.last.first rescue ""
+	word_dup = word.dup
+	word_dup.gsub!(/#{suffix}$/ , "") if not suffix.empty?
+	return word_dup , suffix 
+end
+
+
+def split_prefix(word)
+	prefixes_possible = $prefix_frequencies.select{|prefix|  not word.match(/^#{prefix[0]}/).to_a.empty? }
+	prefix = prefixes_possible.sort_by{|x| x[1]}.last.first rescue ""
+	word_dup = word.dup
+	word_dup.gsub!(/^#{prefix}/ , "") if not prefix.empty?
+	return prefix , word_dup
+end
+
+
+
+
+
+
 def array_permutation(array)
   return array[0] if array.size == 1
   first = array.shift
@@ -42,23 +82,23 @@ def hyphenate(word)
 	parts << part
 	
 	hyphenated_word = parts.map(&:join).join("-")
-	hyphenated_word.gsub!(/[aeiou][aeiou]+/) do |match|
-		# ap "match : #{match}"
-		vowel_syllabifications = get_possible_vowel_syllabifications(match)
-		# ap vowel_syllabifications
-		vowel_syllabification_frequencies =  vowel_syllabifications.map{|vowel_syllabification|  $vowel_cluster_syllabification_freqs.select{|x| x[1] == vowel_syllabification}.first[2] rescue 1   }
-		# ap vowel_syllabification_frequencies
-		base_frequency = $vowel_cluster_syllabification_freqs.select{|x| x[0] == match}.inject(0){|sum , i| sum + i[2].to_i }
-		# ap "Vowel freq #{vowel_syllabification_frequencies}"
-		# ap "base freq #{base_frequency}"
-		probabilities = vowel_syllabification_frequencies.map{|x| (x.to_f / (base_frequency.to_f + 1))} 
-		# ap probabilities.inspect
-		probabilistic_random_index = probabilistic_random(probabilities)
-		# ap probabilistic_random_index
-		# ap "selected :#{vowel_syllabifications[probabilistic_random_index]}"
-		vowel_syllabifications[probabilistic_random_index]
-	end
-	ap hyphenated_word
+	# hyphenated_word.gsub!(/[aeiou][aeiou]+/) do |match|
+	# 	# ap "match : #{match}"
+	# 	vowel_syllabifications = get_possible_vowel_syllabifications(match)
+	# 	# ap vowel_syllabifications
+	# 	vowel_syllabification_frequencies =  vowel_syllabifications.map{|vowel_syllabification|  $vowel_cluster_syllabification_freqs.select{|x| x[1] == vowel_syllabification}.first[2] rescue 1   }
+	# 	# ap vowel_syllabification_frequencies
+	# 	base_frequency = $vowel_cluster_syllabification_freqs.select{|x| x[0] == match}.inject(0){|sum , i| sum + i[2].to_i }
+	# 	# ap "Vowel freq #{vowel_syllabification_frequencies}"
+	# 	# ap "base freq #{base_frequency}"
+	# 	probabilities = vowel_syllabification_frequencies.map{|x| (x.to_f / (base_frequency.to_f + 1))} 
+	# 	# ap probabilities.inspect
+	# 	probabilistic_random_index = probabilistic_random(probabilities)
+	# 	# ap probabilistic_random_index
+	# 	# ap "selected :#{vowel_syllabifications[probabilistic_random_index]}"
+	# 	vowel_syllabifications[probabilistic_random_index]
+	# end
+	# ap hyphenated_word
 	return hyphenated_word
 end
 
@@ -141,17 +181,17 @@ def possible_syllabifications(word)
 			end
 			possible_syllabifications << word
 			##
-			for possible_syllabification in possible_syllabifications
-				parts = possible_syllabification.split("-")
-				for part in parts
-					if part != parts.first and part != parts.last
-						regex = part.split("").join('-?')
-						possible_syllabification.gsub!(/#{regex}/) do |match|
-							hyphenated_word.gsub(/#{regex}/).to_a.first
-						end
-					end
-				end
-			end
+			# for possible_syllabification in possible_syllabifications
+			# 	parts = possible_syllabification.split("-")
+			# 	for part in parts
+			# 		if part != parts.first and part != parts.last
+			# 			regex = part.split("").join('-?')
+			# 			possible_syllabification.gsub!(/#{regex}/) do |match|
+			# 				hyphenated_word.gsub(/#{regex}/).to_a.first
+			# 			end
+			# 		end
+			# 	end
+			# end
 			##
 		end
 		# ap possible_syllabifications
@@ -167,17 +207,17 @@ def possible_syllabifications(word)
 		end		
 		# ap possible_syllabifications
 		##
-		for possible_syllabification in possible_syllabifications
-			parts = possible_syllabification.split("-")
-			for part in parts
-				if part != parts.first and part != parts.last
-					regex = part.split("").join('-?')
-					possible_syllabification.gsub!(/#{regex}/) do |match|
-						hyphenated_word.gsub(/#{regex}/).to_a.first
-					end
-				end
-			end
-		end
+		# for possible_syllabification in possible_syllabifications
+		# 	parts = possible_syllabification.split("-")
+		# 	for part in parts
+		# 		if part != parts.first and part != parts.last
+		# 			regex = part.split("").join('-?')
+		# 			possible_syllabification.gsub!(/#{regex}/) do |match|
+		# 				hyphenated_word.gsub(/#{regex}/).to_a.first
+		# 			end
+		# 		end
+		# 	end
+		# end
 		##
 		return possible_syllabifications
 	else
@@ -200,33 +240,49 @@ def most_probable_syllabification( possible_syllabifications )
 	# ap "possible_syllabifications #{possible_syllabifications.inspect} #{possible_syllabifications.size}"
 	return possible_syllabifications.first if possible_syllabifications.size == 1
 	probability_hash = Hash.new(0)
+	# ap "possible_syllabifications"
 	# ap possible_syllabifications
 	for possible_syllabification in possible_syllabifications
+		# ap "IN possible_syllabification : #{possible_syllabification}"
 		syllables = possible_syllabification.split("-")
+		# ap "syllable size #{syllables.size}"
 		# probability = 0
 		probability = 1
 		# ap "-----"
 		for syllable in syllables
 			to_be_matched = syllable.match(/[aeiou]+/).to_a.first
 			if syllable == syllables.first
-				# ap "pre #{$pre}"
-				# base_frequency = $syllables.select{|x| not x.match(/^#{$pre}.*/).to_a.empty? }.size
-				# ap "first : #{base_frequency}"
-			elsif syllable == syllables.last
-				# base_frequency = $syllables.select{|x| not x.match(/.*#{$post}$/).to_a.empty? }.size				
-				# ap "last  : #{base_frequency}"
+				# base_frequency = $auto_updating_block_frequency_in_syllables["^#{$pre}.*"]
+				# if base_frequency.nil?
+				# 	base_frequency = $syllables.count{|x| not x.match(/^#{$pre}.*/).to_a.empty? }
+				# 	$auto_updating_block_frequency_in_syllables["^#{$pre}.*"] = base_frequency
+				# end
+				# ap "first pre: #{base_frequency}"
+			elsif syllable == syllables.last				
+				# base_frequency = $auto_updating_block_frequency_in_syllables[".*#{$post}$"]
+				# if base_frequency.nil?
+				# 	base_frequency = $syllables.count{|x| not x.match(/.*#{$post}$/).to_a.empty? }
+				# 	$auto_updating_block_frequency_in_syllables[".*#{$post}$"] = base_frequency
+				# end
+				# ap "last  post: #{base_frequency}"
 			else			
-				# base_frequency = $syllables.select{|x| not x.match(/#{to_be_matched}/).to_a.empty? }.size
+				# base_frequency = $auto_updating_block_frequency_in_syllables["#{to_be_matched}"]
+				# if base_frequency.nil?
+				# 	base_frequency = $syllables.select{|x| not x.match(/#{to_be_matched}/).to_a.empty? }.size
+				# 	$auto_updating_block_frequency_in_syllables["#{to_be_matched}"] = base_frequency
+				# end
 				# probability_hash[possible_syllabification] += ($syllables_frequencies[syllable].to_i || 0)
-				# ap "other #{base_frequency}"
+				# ap "other MID : #{base_frequency}"
 			end
 			num_freq = ($syllables_frequencies[syllable].to_i || 0).to_f 
 			# base_frequency += 1
-			# num_freq += 1
+			num_freq += 1
+			# ap "Num fre #{num_freq}   : base_frequency  #{base_frequency}"
 			# ap "BASE PROBLEM" if base_frequency == 1
 			# ap "NUM  PROBLEM" if num_freq == 0
-			probability += num_freq 
-			# probability += Math.log2( num_freq / (base_frequency.to_f))
+			# probability += num_freq 
+			#IF NUM FREQUENCY IS 0 , then that syllable is illegal and so should never be used.
+			probability += Math.log2( ( num_freq))
 		end
 		probability_hash[possible_syllabification] = probability
 	end
@@ -234,15 +290,41 @@ def most_probable_syllabification( possible_syllabifications )
 	probability_hash.to_a.max_by(&:last).first
 end
 
-
 # (possible_syllabifications("beasansign"))
-
 # ap most_probable_syllabification(possible_syllabifications("aboriginal"))
 
 def tag(word)
-	most_probable_syllabification(possible_syllabifications(word))
+
+	# Do no do this : it reduces the efficiency by 2 %age.
+	# return word	if word.gsub(/[aeiou]+/).to_a.size <= 1
+
+	prefix , word = split_prefix(word)
+	word , suffix = split_suffix(word)
+
+	# ap "prefix: #{prefix}    suffix : #{suffix}"
+
+	return prefix if word.empty? and suffix.empty?
+	return suffix if word.empty? and prefix.empty?
+	return [prefix , suffix].join("-") if word.empty?
+	
+	syllabified = most_probable_syllabification(possible_syllabifications(word))
+	
+	if suffix.empty? and prefix.empty?
+		syllabified_word = syllabified
+	elsif prefix.empty?
+		syllabified_word = [ syllabified , suffix].join("-") if prefix.empty?
+	elsif suffix.empty?
+		syllabified_word = [ prefix , syllabified ].join("-")	
+	else
+		syllabified_word = [ prefix , syllabified , suffix].join("-")
+	end
+	return syllabified_word
+	# ap syllabified_word
+
+
 end
 
-# .select{|x| not x.match(/#{"h"}/).to_a.empty? }.size
 
+
+ap tag("pudendum")
 
