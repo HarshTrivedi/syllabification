@@ -276,7 +276,7 @@ def most_probable_syllabification( possible_syllabifications )
 			end
 			num_freq = ($syllables_frequencies[syllable].to_i || 0).to_f 
 			# base_frequency += 1
-			num_freq += 1
+			# num_freq += 1
 			# ap "Num fre #{num_freq}   : base_frequency  #{base_frequency}"
 			# ap "BASE PROBLEM" if base_frequency == 1
 			# ap "NUM  PROBLEM" if num_freq == 0
