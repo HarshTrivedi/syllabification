@@ -4,7 +4,9 @@ Experimentations and results achieved:
 
 1. MOP
 
-12190.0 correct out of 40058 : 30.43 %age correct
+12190 correct out of 40058 : 30.43 %age correct (42K dataset)
+
+24721 correct out of total 91009       : 27.16 (92K dataset)
 
 
 2. Hybrid MOP with ambisyllabification using maximmum probable split.
@@ -15,46 +17,52 @@ Maximum probable split is chosen using normalized onset frequencies.
 3. MOP with some x threshold
 
 the result varies with changing threshold
+(On 42K dataset) 
+	threshold: 0 ->   (12190 / 40058)
+	threshold: 5 ->   (13481 / 40058)
+	threshold: 10 ->  (13556 / 40058)
+	threshold: 20 ->  (13633 / 40058)
+	threshold: 30 ->  (13661 / 40058)
+	threshold: 40 ->  (13673 / 40058)
+	threshold: 50 ->  (13675 / 40058)
+	threshold: 60 ->  (13679 / 40058)
+	threshold: 70 ->  (13676 / 40058)
+	threshold: 80 ->  (13710 / 40058)
+	threshold: 90 ->  (13720 / 40058)
+	threshold: 100 -> (13710 / 40058)
+	threshold: 110 -> (13710 / 40058)
+	threshold: 120 -> (13693 / 40058)
+	threshold: 130 -> (13693 / 40058)
+	threshold: 140 -> (13741 / 40058)
+	threshold: 150 -> (13716 / 40058)
+	threshold: 160 -> (13716 / 40058)
+	threshold: 170 -> (13716 / 40058)
+	threshold: 180 -> (13719 / 40058)
+	threshold: 190 -> (13719 / 40058)
+	threshold: 200 -> (13633 / 40058)
+	threshold: 210 -> (13633 / 40058)
+	threshold: 220 -> (13622 / 40058)
+	threshold: 230 -> (13622 / 40058)
+	threshold: 240 -> (13622 / 40058)
+	threshold: 300 -> (13592 / 40058)
+	threshold: 400 -> (13074 / 40058)
+	threshold: 500 -> (12918 / 40058)
+	threshold: 600 -> (12679 / 40058)
 
-threshold: 0 ->   (12190 / 40058)
-threshold: 5 ->   (13481 / 40058)
-threshold: 10 ->  (13556 / 40058)
-threshold: 20 ->  (13633 / 40058)
-threshold: 30 ->  (13661 / 40058)
-threshold: 40 ->  (13673 / 40058)
-threshold: 50 ->  (13675 / 40058)
-threshold: 60 ->  (13679 / 40058)
-threshold: 70 ->  (13676 / 40058)
-threshold: 80 ->  (13710 / 40058)
-threshold: 90 ->  (13720 / 40058)
-threshold: 100 -> (13710 / 40058)
-threshold: 110 -> (13710 / 40058)
-threshold: 120 -> (13693 / 40058)
-threshold: 130 -> (13693 / 40058)
-threshold: 140 -> (13741 / 40058)
-threshold: 150 -> (13716 / 40058)
-threshold: 160 -> (13716 / 40058)
-threshold: 170 -> (13716 / 40058)
-threshold: 180 -> (13719 / 40058)
-threshold: 190 -> (13719 / 40058)
-threshold: 200 -> (13633 / 40058)
-threshold: 210 -> (13633 / 40058)
-threshold: 220 -> (13622 / 40058)
-threshold: 230 -> (13622 / 40058)
-threshold: 240 -> (13622 / 40058)
-threshold: 300 -> (13592 / 40058)
-threshold: 400 -> (13074 / 40058)
-threshold: 500 -> (12918 / 40058)
-threshold: 600 -> (12679 / 40058)
+
+	-> 28074 of total 91009 : 30.84 (On 92K dataset)
+
 
 4. MOP with diphtong-hiatus problem solved using Muller's idea of counting frequencies of vowel diagrams and 2 vowels seperated by consonant
 
 	11017 correct of total 40058 : 27.50 %age
+	22300 correct out of 91009 : 24.50 %age correct (92K dataset)
 
 
 5. Applying 4 with optimized threshold (150)
 
-	12383 correct of total 40058 : 30.91 %age
+	12383 correct of total 40058 : 30.91 %age (On 42K dataset)
+	25240 correct of total 91009 : 27.7 %age (On 92K dataset)
 
 
 
@@ -70,7 +78,11 @@ threshold: 600 -> (12679 / 40058)
 
 	Experiment 1 : (Couting probability of syllabification using summation of frequencies of individual consistuent syllables in it)
 
-		10745 correct of total 40058: 26.82 %age
+		10745 correct of total 40058: 26.82 %age (On 42K dataset)
+
+		17579 correct of total 91009: 19.31 %age (On 92K dataset)
+		
+
 	
 	Experiment 2 : (Counting probability of syllabification using summation of actual probability of it being a syllable given the fact that syllable contains the consituent vowel cluster.)
 

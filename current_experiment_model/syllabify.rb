@@ -1,47 +1,63 @@
 require "awesome_print"
 require "csv"
 
-
-$vowel_cluster_syllabification_freqs = CSV.read('vowel_cluster_syllabification_freqs.csv')
-# example element of array above: [ "aa", "a-a", "10"]
-
-$block_frequency_in_syllables = CSV.read('block_frequency_in_syllables.csv')
-$block_frequency_in_syllables = Hash[*$block_frequency_in_syllables.flatten(1)]
-
-$auto_updating_block_frequency_in_syllables = Hash.new
-
-$hash_of_matrix = Hash.new(true)
-
-
-$prefix_frequencies = CSV.read("prefix_scores_92000.csv")
-$prefix_frequencies = $prefix_frequencies.select{|x| x.last.to_f > 0.40}
-$prefix_frequencies_hash =  Hash[*$prefix_frequencies.flatten(1)]
-
-$suffix_frequencies = CSV.read("suffix_scores_92000.csv")
-$suffix_frequencies = $suffix_frequencies.select{|x| x.last.to_f >= 0.40}
-
-$suffix_frequencies_hash =  Hash[*$suffix_frequencies.flatten(1)]
-
-
-def split_suffix(word)
-	suffixes_possible = $suffix_frequencies.select{|suffix|  not word.match(/#{suffix[0]}$/).to_a.empty? }
-	suffix = suffixes_possible.sort_by{|x| x[1].to_i}.last.first rescue ""
-	word_dup = word.dup
-	word_dup.gsub!(/#{suffix}$/ , "") if not suffix.empty?
-	return word_dup , suffix 
+def get_linearly_decrease_substrings(string)
+	results = []
+	array = string.split("")
+	results << array.join
+	while not array.empty? do 
+		array = array.dup
+		array.shift
+		results << array.join
+	end
+	results.pop
+	results
 end
 
 
+def get_linearly_increase_substrings(string)
+	string = string.dup.reverse
+	results = get_linearly_decrease_substrings(string)
+	results.map!(&:reverse).reverse
+end
+
+
+
+$prefix_frequencies = CSV.read("model_files/prefix_scores.csv")
+# $prefix_frequencies = $prefix_frequencies.select{|x| x.last.to_f >= 0.95}
+$prefix_frequencies_hash =  Hash[*$prefix_frequencies.flatten(1)]
+
+$suffix_frequencies = CSV.read("model_files/suffix_scores.csv")
+# $suffix_frequencies = $suffix_frequencies.select{|x| x.last.to_f >= 0.95}
+$suffix_frequencies_hash =  Hash[*$suffix_frequencies.flatten(1)]
+
+
 def split_prefix(word)
-	prefixes_possible = $prefix_frequencies.select{|prefix|  not word.match(/^#{prefix[0]}/).to_a.empty? }
-	prefix = prefixes_possible.sort_by{|x| x[1]}.last.first rescue ""
+
+	possible_prefixes = get_linearly_increase_substrings(word)
+	# ap possible_prefixes
+	prefix = possible_prefixes.select{|prefix| $prefix_frequencies_hash[prefix].to_f >= 0.70 }.max_by{|prefix| $prefix_frequencies_hash[prefix].to_f } || ""
+
+	possible_prefixes = get_linearly_decrease_substrings(word)
+	possible_prefixes.max_by{|prefix|  $prefix_frequencies_hash[prefix].to_i } || ""
+
 	word_dup = word.dup
 	word_dup.gsub!(/^#{prefix}/ , "") if not prefix.empty?
 	return prefix , word_dup
 end
 
 
+def split_suffix(word)
+	possible_suffixes = get_linearly_decrease_substrings(word)
+	suffix = possible_suffixes.select{|suffix| $suffix_frequencies_hash[suffix].to_f >= 0.70 }.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_f } || ""
+	# ap possible_suffixes
+	possible_suffixes = get_linearly_decrease_substrings(word)
+	possible_suffixes.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_i } || ""
 
+	word_dup = word.dup
+	word_dup.gsub!(/#{suffix}$/ , "") if not suffix.empty?
+	return word_dup , suffix
+end
 
 
 
@@ -133,10 +149,16 @@ def possible_syllabifications(word)
 		confusing_parts << cumulative_sizes.take(2)
 		cumulative_sizes.shift
 	end
+	# ap word
+	# ap hyphenated_word
+	# ap confusing_parts
 	confusing_parts.each{|confusing_part| confusing_part[0] += -1}
 	confusing_parts = confusing_parts.map{|confusing_part| ((confusing_part.first)..(confusing_part.last)).to_a.combination(2).to_a.select{|confusing_part| confusing_part.first == confusing_part.last - 1} }
 	confusing_consonants = confusing_parts.select{|confusing_part| is_consonant(word[confusing_part[1][0]])}
 	confusing_vowels = confusing_parts.select{|confusing_part| is_vowel(word[confusing_part[1][0]])}
+
+	# ap confusing_consonants
+	# ap confusing_consonants
 
 	if confusing_consonants.size >= 2
 		# ap confusing_consonants.inspect
@@ -180,7 +202,7 @@ end
 
 
 
-syllables_frequencies = CSV.read("list_of_syllables_from_tagged-data.csv")
+syllables_frequencies = CSV.read("model_files/syllable_frequencies.csv")
 $syllables_frequencies = Hash[*syllables_frequencies.flatten(1)]
 $syllables = $syllables_frequencies.keys
 
@@ -246,6 +268,7 @@ def tag(word)
 	# Do no do this : it reduces the efficiency by 2 %age.
 	# return word	if word.gsub(/[aeiou]+/).to_a.size <= 1
 
+
 	prefix , word = split_prefix(word)
 	word , suffix = split_suffix(word)
 
@@ -274,5 +297,5 @@ end
 
 
 
-ap tag("pudendum")
+ap tag("tantalum")
 

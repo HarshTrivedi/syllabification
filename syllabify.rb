@@ -1,7 +1,7 @@
 require "awesome_print"
 require "csv"
-require File.join( Dir.pwd , "vowel_syllabifications.rb")
-require File.join( Dir.pwd , "probabilistic_random.rb")
+# require File.join( Dir.pwd , "vowel_syllabifications.rb")
+# require File.join( Dir.pwd , "probabilistic_random.rb")
 
 legal_onsets = CSV.read('legal_onsets.csv')
 $legal_onsets_hash = Hash[*legal_onsets.flatten(1)]
@@ -12,36 +12,36 @@ diphtong_hiatus_freq = CSV.read('diphtong_hiatus_freqs.csv')
 $diphtong_hiatus_freq = Hash[*diphtong_hiatus_freq.map{|x| [x[0] , [x[1] , x[2]]]}.flatten(1)]
 
 
-$vowel_cluster_syllabification_freqs = CSV.read('vowel_cluster_syllabification_freqs.csv')
-# example element of array above: [ "aa", "a-a", "10"]
+# $vowel_cluster_syllabification_freqs = CSV.read('vowel_cluster_syllabification_freqs.csv')
+# # example element of array above: [ "aa", "a-a", "10"]
 
 
-$prefix_frequencies = CSV.read("prefix_scores_92000.csv")
-$prefix_frequencies = $prefix_frequencies.select{|x| x.last.to_f > 0.50}
-$prefix_frequencies_hash =  Hash[*$prefix_frequencies.flatten(1)]
+# $prefix_frequencies = CSV.read("prefix_scores_92000.csv")
+# $prefix_frequencies = $prefix_frequencies.select{|x| x.last.to_f > 0.50}
+# $prefix_frequencies_hash =  Hash[*$prefix_frequencies.flatten(1)]
 
-$suffix_frequencies = CSV.read("suffix_scores_92000.csv")
-$suffix_frequencies = $suffix_frequencies.select{|x| x.last.to_f >= 0.50}
+# $suffix_frequencies = CSV.read("suffix_scores_92000.csv")
+# $suffix_frequencies = $suffix_frequencies.select{|x| x.last.to_f >= 0.50}
 
-$suffix_frequencies_hash =  Hash[*$suffix_frequencies.flatten(1)]
-
-
-def split_suffix(word)
-	suffixes_possible = $suffix_frequencies.select{|suffix|  not word.match(/#{suffix[0]}$/).to_a.empty? }
-	suffix = suffixes_possible.sort_by{|x| x[1].to_i}.last.first rescue ""
-	word_dup = word.dup
-	word_dup.gsub!(/#{suffix}$/ , "") if not suffix.empty?
-	return word_dup , suffix 
-end
+# $suffix_frequencies_hash =  Hash[*$suffix_frequencies.flatten(1)]
 
 
-def split_prefix(word)
-	prefixes_possible = $prefix_frequencies.select{|prefix|  not word.match(/^#{prefix[0]}/).to_a.empty? }
-	prefix = prefixes_possible.sort_by{|x| x[1]}.last.first rescue ""
-	word_dup = word.dup
-	word_dup.gsub!(/^#{prefix}/ , "") if not prefix.empty?
-	return prefix , word_dup
-end
+# def split_suffix(word)
+# 	suffixes_possible = $suffix_frequencies.select{|suffix|  not word.match(/#{suffix[0]}$/).to_a.empty? }
+# 	suffix = suffixes_possible.sort_by{|x| x[1].to_i}.last.first rescue ""
+# 	word_dup = word.dup
+# 	word_dup.gsub!(/#{suffix}$/ , "") if not suffix.empty?
+# 	return word_dup , suffix 
+# end
+
+
+# def split_prefix(word)
+# 	prefixes_possible = $prefix_frequencies.select{|prefix|  not word.match(/^#{prefix[0]}/).to_a.empty? }
+# 	prefix = prefixes_possible.sort_by{|x| x[1]}.last.first rescue ""
+# 	word_dup = word.dup
+# 	word_dup.gsub!(/^#{prefix}/ , "") if not prefix.empty?
+# 	return prefix , word_dup
+# end
 
 
 
@@ -73,12 +73,12 @@ def hyphenate(word)
 	parts << part
 	
 	hyphenated_word = parts.map(&:join).join("-")
-	# #Solve diphtong , hyatus prbolem
-	# match = hyphenated_word.gsub(/[aeiou][aeiou]/).to_a.first
-	# if match and ($diphtong_hiatus_freq[match][0] < $diphtong_hiatus_freq[match][1])
-	# 	hyphenated_word[ hyphenated_word.gsub(/[aeiou][aeiou]/).to_a.first]="#{match[0]}-#{match[1]}"
-	# end
-	# return hyphenated_word
+	#Solve diphtong , hyatus prbolem
+	match = hyphenated_word.gsub(/[aeiou][aeiou]/).to_a.first
+	if match and ($diphtong_hiatus_freq[match][0] < $diphtong_hiatus_freq[match][1])
+		hyphenated_word[ hyphenated_word.gsub(/[aeiou][aeiou]/).to_a.first]="#{match[0]}-#{match[1]}"
+	end
+	return hyphenated_word
 
 
 	# Solve Vowel Cluster problem
@@ -117,11 +117,11 @@ end
 
 def tag(word)
 	###
-	prefix , word = split_prefix(word)
-	word , suffix = split_suffix(word)
-	return prefix if word.empty? and suffix.empty?
-	return suffix if word.empty? and prefix.empty?
-	return [prefix , suffix].join("-") if word.empty?
+	# prefix , word = split_prefix(word)
+	# word , suffix = split_suffix(word)
+	# return prefix if word.empty? and suffix.empty?
+	# return suffix if word.empty? and prefix.empty?
+	# return [prefix , suffix].join("-") if word.empty?
 	####
 
 	hyphenated_word = hyphenate(word)
@@ -165,10 +165,10 @@ def tag(word)
 	# ap "confusing_parts"
 	# ap confusing_parts
 	for confusing_part in confusing_parts
- 		left = [] ; right = confusing_part.slice(3,1).first.split("")
- 		# while( not is_legal_onset(right.join() ) )do
+ 		left = [] ; right = confusing_part.slice(3,1).first.split("") 
+		while( not is_legal_onset(right.join() ) )do
 		# For trying different threshold values : uncomment this
-		while( frequency_of_onset(right.join()) <= 150 and right.size != 1)do
+		# while( frequency_of_onset(right.join()) <= 150 and right.size != 1)do
  			left = left.dup
  			right = right.dup
  			left.push(right.shift) 			
@@ -197,21 +197,21 @@ def tag(word)
 
 	# ap "#{prefix}  : #{syllabified}  :  #{suffix}"
 
-	if suffix.empty? and prefix.empty?
+	# if suffix.empty? and prefix.empty?
 		syllabified_word = syllabified
-	elsif prefix.empty?
-		syllabified_word = [ syllabified , suffix].join("-") if prefix.empty?
-	elsif suffix.empty?
-		syllabified_word = [ prefix , syllabified ].join("-")	
-	else
-		syllabified_word = [ prefix , syllabified , suffix].join("-")
-	end
+	# elsif prefix.empty?
+	# 	syllabified_word = [ syllabified , suffix].join("-") if prefix.empty?
+	# elsif suffix.empty?
+	# 	syllabified_word = [ prefix , syllabified ].join("-")	
+	# else
+	# 	syllabified_word = [ prefix , syllabified , suffix].join("-")
+	# end
 	return syllabified_word
-	ap syllabified_word
+	# ap syllabified_word
 
 
 
-	# # ##Solve the confusing part using HYBRID MOP
+	# ##Solve the confusing part using HYBRID MOP
 
  # 	for confusing_part in confusing_parts
  # 		left = [] ; right = confusing_part.slice(3,1).first.split("")

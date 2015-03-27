@@ -50,7 +50,7 @@ def split_prefix(word)
 
 	possible_prefixes = get_linearly_increase_substrings(word)
 	# ap possible_prefixes
-	prefix = possible_prefixes.select{|prefix| $prefix_frequencies_hash[prefix].to_f >= 0.10 }.max_by{|prefix| $prefix_frequencies_hash[prefix].to_i } || ""
+	prefix = possible_prefixes.select{|prefix| $prefix_frequencies_hash[prefix].to_f >= 0.70 }.max_by{|prefix| $prefix_frequencies_hash[prefix].to_f } || ""
 
 	possible_prefixes = get_linearly_decrease_substrings(word)
 	possible_prefixes.max_by{|prefix|  $prefix_frequencies_hash[prefix].to_i } || ""
@@ -63,7 +63,7 @@ end
 
 def split_suffix(word)
 	possible_suffixes = get_linearly_decrease_substrings(word)
-	suffix = possible_suffixes.select{|suffix| $suffix_frequencies_hash[suffix].to_f >= 0.10 }.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_i } || ""
+	suffix = possible_suffixes.select{|suffix| $suffix_frequencies_hash[suffix].to_f >= 0.70 }.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_f } || ""
 	# ap possible_suffixes
 	possible_suffixes = get_linearly_decrease_substrings(word)
 	possible_suffixes.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_i } || ""
