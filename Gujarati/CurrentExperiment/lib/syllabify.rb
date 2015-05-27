@@ -1,10 +1,12 @@
 # encoding: UTF-8
-require 'awesome_print'
-require  File.join( Dir.pwd , "character_details.rb" )
-require  File.join( Dir.pwd , "test_syllabic_scores_sample.rb" )
+require 'bundler/setup'
+Bundler.require
 
+require  File.join( Dir.pwd , "calculate_syllabic_scores.rb" )
 
-correlation_quantities_array = CSV.read('correlation_quantities.csv')
+$experiment_root = File.join( Dir.pwd , ".." )
+
+correlation_quantities_array = CSV.read( File.join( $experiment_root , "model_files" , "correlation_quantities.csv")  )
 $correlation_quantities_hash = {}
 for correlation_quantity in correlation_quantities_array
 	correlation = correlation_quantity.first
@@ -104,4 +106,4 @@ def get_precomputed_score( hyphenated_word , permutation , combination)
 	return score
 end
 
-# ap syllabify("તકરાર")
+ap syllabify("તકરાર")

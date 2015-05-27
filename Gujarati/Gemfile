@@ -7,4 +7,6 @@
 
 
  gem "awesome_print"
-
+ require "csv"
+ require  File.join( Bundler.root , "character_details.rb" )
+ require  File.join( Bundler.root , "regex_character_sets.rb" )

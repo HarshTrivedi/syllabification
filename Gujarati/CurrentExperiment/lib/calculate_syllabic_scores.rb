@@ -1,11 +1,10 @@
 # encoding: UTF-8
-require 'awesome_print'
-require 'csv'
-require  File.join( Dir.pwd , "character_details.rb" )
+require 'bundler/setup'
+Bundler.require
 
-array = [ "અ" , "ણ"  ]
+$experiment_root = File.join( Dir.pwd , ".." )
 
-$word_syllabifications = CSV.read( File.join( Dir.pwd , "unique_gujarati_syllabification_corpus.csv" ) ) 
+$word_syllabifications = CSV.read( File.join( $experiment_root , "data" , "train_data.csv" ) ) 
 
 
 def get_pair_coexistence_probability(array , seperate = true)
@@ -46,4 +45,4 @@ end
 
 
 
-ap get_pair_coexistence_probability(array , false)
+# ap get_pair_coexistence_probability(array , false)
