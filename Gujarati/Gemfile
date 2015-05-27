@@ -1,0 +1,10 @@
+ 
+ source "http://rubygems.org"
+
+ require "rubygems"
+ require "bundler/setup"
+
+
+
+ gem "awesome_print"
+
