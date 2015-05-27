@@ -2,9 +2,10 @@
 require 'bundler/setup'
 Bundler.require
 
-require  File.join( Dir.pwd , "calculate_syllabic_scores.rb" )
+directory = __dir__
+require  File.join( directory , "calculate_syllabic_scores.rb" )
 
-$experiment_root = File.join( Dir.pwd , ".." )
+$experiment_root = File.join( directory , ".." )
 
 correlation_quantities_array = CSV.read( File.join( $experiment_root , "model_files" , "correlation_quantities.csv")  )
 $correlation_quantities_hash = {}

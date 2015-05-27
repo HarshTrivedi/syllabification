@@ -2,7 +2,8 @@
 require 'bundler/setup'
 Bundler.require
 
-$experiment_root = File.join( Dir.pwd , ".." )
+directory = __dir__
+$experiment_root = File.join( directory , ".." )
 
 $word_syllabifications = CSV.read( File.join( $experiment_root , "data" , "train_data.csv" ) ) 
 

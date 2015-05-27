@@ -2,13 +2,14 @@
 require 'bundler/setup'
 Bundler.require
 
-$experiment_root = Dir.pwd 
+directory = __dir__
+$experiment_root = directory
 
 require File.join( $experiment_root , "lib" , "syllabify.rb")
 require File.join( $experiment_root , "lib" , "port_syllable_representation.rb")
 
 
-word_syllabifications = CSV.read( File.join( Bundler.root , "data" , "test_data.csv") ) 
+word_syllabifications = CSV.read( File.join( $experiment_root , "data" , "test_data.csv") ) 
 word_syllabification = Hash[*word_syllabifications.flatten(1)]
 
 correctly_tagged_words = 0
@@ -34,10 +35,9 @@ File.open( File.join( $experiment_root , "result" , "detailed-result.txt" )  , '
 			traversed_words += 1
 
 			msg << "Words Accuracy : (#{traversed_words} words)       :  #{correctly_tagged_words.to_f / traversed_words }"
-			msg << "Char  Accuracy : (#{traversed_characters} chars)  :  #{correctly_tagged_characters.to_f / traversed_characters}"
-			
-			msg = msg.join("\n") ; ap msg ; file.puts msg ;
-			puts "\n"
+			msg << "Char  Accuracy : (#{traversed_characters} chars)  :  #{correctly_tagged_characters.to_f / traversed_characters}"			
+			msg << "\n"
+			msg = msg.join("\n") ; puts msg ; file.puts msg ;
 		end
 	end
 
@@ -48,11 +48,12 @@ end
 msg = []
 msg << "-----------------"
 msg << "-----Final-------"
-msg << "Correctly tagged word are: #{correctly_tagged} from total of #{word_syllabification.size}"
-msg << "Percentage of correctly tagged words  : #{correctly_tagged.to_f / word_syllabification.size}"
+msg << "Correctly tagged word are: #{correctly_tagged_words} from total of #{word_syllabification.size}"
+msg << "Percentage of correctly tagged words  : #{correctly_tagged_words.to_f / word_syllabification.size}"
 msg << "Correctly tagged characters are: #{correctly_tagged_characters} from total of #{traversed_characters}"
 msg << "Percentage of correctly tagged words  : #{correctly_tagged_characters.to_f / traversed_characters}"
 
 msg = msg.join("\n")
 
-File.join( $experiment_root , "result" , "result-analysis.txt" ) { |file| file.puts  msg }
+puts msg
+File.open(File.join( $experiment_root , "result" , "result-analysis.txt" ) , 'w' ){ |file| file.puts  msg }

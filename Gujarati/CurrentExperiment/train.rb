@@ -2,6 +2,8 @@
 require 'bundler/setup'
 Bundler.require
 
+directory = __dir__
+$experiment_root = directory
 
 def get_pair_existence_probability(pair)
 
@@ -60,7 +62,7 @@ end
 
 
 
-word_syllabifications = CSV.read( File.join( Dir.pwd , "data" , "train_data.csv" ) ) 
+word_syllabifications = CSV.read( File.join( $experiment_root , "data" , "train_data.csv" ) ) 
 
 pairs = []
 
@@ -88,7 +90,7 @@ end
 
 
 
-CSV.open( File.join( Dir.pwd , "model_files" , "correlation_quantities.csv" ) , 'w') do |csv_object|
+CSV.open( File.join( $experiment_root , "model_files" , "correlation_quantities.csv" ) , 'w') do |csv_object|
 	rows.each do |row_array|
 		csv_object << row_array
 	end
