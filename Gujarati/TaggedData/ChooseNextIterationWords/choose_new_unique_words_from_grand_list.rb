@@ -1,4 +1,4 @@
-# encoding: UTF-8
+
 require 'bundler/setup'
 Bundler.require
 
@@ -13,7 +13,7 @@ word_syllabifications = CSV.read( File.join( Bundler.root , "TaggedData" , "vers
 
 new_words = all_words.select{|word| not done_words_hash[word.strip] }
 
-chosen_words = new_words.uniq.shuffle.sample( 14000 )
+chosen_words = new_words.uniq.shuffle.sample( 6000 )
 
 CSV.open(   File.join( __dir__ , "to_be_suggested_data.csv" )   , 'w') do |csv_object|
   chosen_words.map{|x| [x]}.each { |row_array| csv_object << row_array }
