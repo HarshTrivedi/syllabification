@@ -1,0 +1,178 @@
+# encoding: UTF-8
+require 'bundler/setup'
+Bundler.require
+
+directory = __dir__
+require  File.join( directory , "calculate_syllabic_scores.rb" )
+
+$experiment_root = File.join( directory , ".." )
+
+
+####
+
+correlation_quantities_array = CSV.read( File.join( $experiment_root , "model_files" , "correlation_quantities.csv")  )
+$correlation_quantities_hash = {}
+for correlation_quantity in correlation_quantities_array
+	correlation = correlation_quantity.first
+	correlation_quantity.shift
+	$correlation_quantities_hash[correlation] = correlation_quantity
+end
+
+
+#####
+
+def get_linearly_decrease_substrings(string)
+	results = []
+	array = string.split("")
+	results << array.join
+	while not array.empty? do 
+		array = array.dup
+		array.shift
+		results << array.join
+	end
+	results.pop
+	results
+end
+
+
+def get_linearly_increase_substrings(string)
+	string = string.dup.reverse
+	results = get_linearly_decrease_substrings(string)
+	results.map!(&:reverse).reverse
+end
+
+
+
+$prefix_frequencies = CSV.read(  File.join(directory , ".." , "model_files" , "prefix_scores.csv" )  )
+# $prefix_frequencies = $prefix_frequencies.select{|x| x.last.to_f >= 0.95}
+$prefix_frequencies_hash =  Hash[*$prefix_frequencies.flatten(1)]
+
+$suffix_frequencies = CSV.read(  File.join(directory , ".." , "model_files" , "suffix_scores.csv" )  )
+# $suffix_frequencies = $suffix_frequencies.select{|x| x.last.to_f >= 0.95}
+$suffix_frequencies_hash =  Hash[*$suffix_frequencies.flatten(1)]
+
+
+def split_prefix(word)
+
+	possible_prefixes = get_linearly_increase_substrings(word)
+	# ap possible_prefixes
+	prefix = possible_prefixes.select{|prefix| $prefix_frequencies_hash[prefix].to_f >= 0.70 }.max_by{|prefix| $prefix_frequencies_hash[prefix].to_f } || ""
+
+	possible_prefixes = get_linearly_decrease_substrings(word)
+	possible_prefixes.max_by{|prefix|  $prefix_frequencies_hash[prefix].to_i } || ""
+
+	word_dup = word.dup
+	word_dup.gsub!(/^#{prefix}/ , "") if not prefix.empty?
+	return prefix , word_dup
+end
+
+
+def split_suffix(word)
+	possible_suffixes = get_linearly_decrease_substrings(word)
+	suffix = possible_suffixes.select{|suffix| $suffix_frequencies_hash[suffix].to_f >= 0.70 }.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_f } || ""
+	# ap possible_suffixes
+	possible_suffixes = get_linearly_decrease_substrings(word)
+	possible_suffixes.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_i } || ""
+
+	word_dup = word.dup
+	word_dup.gsub!(/#{suffix}$/ , "") if not suffix.empty?
+	return word_dup , suffix
+end
+
+
+#####
+
+
+def hyphenate(word)
+	# ap "WORD IS #{word}"
+	parts = []
+	chars = word.chars.to_a.select{|x| not x.strip.ord == 8204 }
+	types = ["non_matra" , "matra" ]
+	part = [chars.shift]
+	for char in chars
+		if is_matra(char)
+			part << char
+		else
+			parts << part
+			part = [char]
+		end
+	end
+	parts << part	
+	hyphenated_word = parts.map(&:join).join("-")
+	return hyphenated_word
+
+end
+
+
+
+def syllabify(word)
+	hyphenated_word = hyphenate(word)
+	parts = hyphenated_word.split("-")
+	max_possible_splits = parts.size - 1
+	return word if max_possible_splits == 0
+	combinations = []
+	for i in 1..max_possible_splits
+		combination = ( ( 1..(parts.size - 1) ).to_a.combination(i).to_a )
+		combinations += combination
+	end
+	combinations << []
+	combination_score_hash = Hash.new
+
+	combinated_words = []
+	combinations.each do |combination|
+		dash_count = 0
+		chars = hyphenated_word.chars.to_a.select{|x| not x.strip.ord == 8204 }
+		new_chars = []
+		for char in chars
+			if char == "-"
+				dash_count += 1
+				new_chars << "-" if combination.include?(dash_count)				
+			else
+				new_chars << char
+			end
+		end
+		combinated_word = new_chars.join("")
+		combinated_words << combinated_word
+		score = get_precomputed_score( hyphenated_word , combinated_word , combination)	
+		combination_score_hash[combinated_word] = score
+	end
+	combinated_words
+	ap combination_score_hash
+	return combination_score_hash.to_a.sort_by(&:last).last.first
+end
+
+
+def get_score( hyphenated_word , permutation , combination)	
+	parts = hyphenated_word.split("-")
+	max_possible_splits = parts.size - 1
+	probabilities = []
+	for i in 1..max_possible_splits
+		pair = parts.slice( i - 1 , 2 )
+		if combination.include?(i)
+			probabilities << get_pair_coexistence_probability( pair , true)
+		else
+			probabilities << get_pair_coexistence_probability( pair , false)
+		end
+	end
+	score = probabilities.inject(:*)
+	score
+end
+
+
+def get_precomputed_score( hyphenated_word , permutation , combination)
+	parts = hyphenated_word.split("-")
+	max_possible_splits = parts.size - 1
+	probabilities = []
+	for i in 1..max_possible_splits
+		pair = parts.slice( i - 1 , 2 )
+		if combination.include?(i)
+			probabilities << $correlation_quantities_hash[pair.join("<=>")][3].to_f rescue 0.0
+		else
+			probabilities <<  $correlation_quantities_hash[pair.join("<=>")][4].to_f rescue 0
+		end
+	end
+	score = probabilities.inject(:*)
+	return score
+end
+
+# ap syllabify("હાથકડી")
