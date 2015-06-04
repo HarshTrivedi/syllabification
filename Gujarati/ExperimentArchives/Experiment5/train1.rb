@@ -5,6 +5,8 @@ Bundler.require
 directory = __dir__
 $experiment_root = directory
 
+require  File.join( directory , "lib" , "syllabify.rb")
+
 def get_pair_existence_probability(pair)
 
 	#To Be Returned
