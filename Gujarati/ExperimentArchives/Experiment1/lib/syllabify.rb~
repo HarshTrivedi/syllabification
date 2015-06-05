@@ -19,18 +19,6 @@ for correlation_quantity in correlation_quantities_array
 end
 
 
-####
-
-syllable_existence_frequencies_array = CSV.read( File.join( $experiment_root , "model_files" , "syllable_frequencies.csv")  )
-$syllable_existence_frequencies_hash = Hash.new(0)
-for syllable_frequency in syllable_existence_frequencies_array
-	syllable = syllable_frequency.first
-	frequency = syllable_frequency.last
-	$syllable_existence_frequencies_hash[syllable] = frequency
-end
-
-
-
 #####
 
 def get_linearly_decrease_substrings(string)
@@ -68,7 +56,7 @@ def split_prefix(word)
 
 	possible_prefixes = get_linearly_increase_substrings(word)
 	# ap possible_prefixes
-	prefix = possible_prefixes.select{|prefix| $prefix_frequencies_hash[prefix].to_f >= 0.90 }.max_by{|prefix| $prefix_frequencies_hash[prefix].to_f } || ""
+	prefix = possible_prefixes.select{|prefix| $prefix_frequencies_hash[prefix].to_f >= 0.70 }.max_by{|prefix| $prefix_frequencies_hash[prefix].to_f } || ""
 
 	possible_prefixes = get_linearly_decrease_substrings(word)
 	possible_prefixes.max_by{|prefix|  $prefix_frequencies_hash[prefix].to_i } || ""
@@ -81,7 +69,7 @@ end
 
 def split_suffix(word)
 	possible_suffixes = get_linearly_decrease_substrings(word)
-	suffix = possible_suffixes.select{|suffix| $suffix_frequencies_hash[suffix].to_f >= 0.90 }.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_f } || ""
+	suffix = possible_suffixes.select{|suffix| $suffix_frequencies_hash[suffix].to_f >= 0.70 }.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_f } || ""
 	# ap possible_suffixes
 	possible_suffixes = get_linearly_decrease_substrings(word)
 	possible_suffixes.max_by{|suffix|  $suffix_frequencies_hash[suffix].to_i } || ""
@@ -117,35 +105,6 @@ end
 
 
 
-def syllabify_wrapper(word)
-
-	prefix , word = split_prefix(word)
-	word , suffix = split_suffix(word)
-
-	ap "prefix: #{prefix}    suffix : #{suffix}"
-
-	return prefix if word.empty? and suffix.empty?
-	return suffix if word.empty? and prefix.empty?
-	return [prefix , suffix].join("-") if word.empty?
-
-	syllabified = syllabify(word)
-
-	if suffix.empty? and prefix.empty?
-		syllabified_word = syllabified
-	elsif prefix.empty?
-		syllabified_word = [ syllabified , suffix].join("-") if prefix.empty?
-	elsif suffix.empty?
-		syllabified_word = [ prefix , syllabified ].join("-")	
-	else
-		syllabified_word = [ prefix , syllabified , suffix].join("-")
-	end
-	return syllabified_word
-
-
-end
-
-
-
 def syllabify(word)
 	hyphenated_word = hyphenate(word)
 	parts = hyphenated_word.split("-")
@@ -174,8 +133,7 @@ def syllabify(word)
 		end
 		combinated_word = new_chars.join("")
 		combinated_words << combinated_word
-		score = get_precomputed_score( hyphenated_word , combinated_word , combination) ||	0
-		score = 0 if has_illegal_syllable?(combinated_word)
+		score = get_precomputed_score( hyphenated_word , combinated_word , combination)	
 		combination_score_hash[combinated_word] = score
 	end
 	combinated_words
@@ -186,31 +144,35 @@ end
 
 def get_score( hyphenated_word , permutation , combination)	
 	parts = hyphenated_word.split("-")
-	probabilities = parts.map( )
+	max_possible_splits = parts.size - 1
+	probabilities = []
+	for i in 1..max_possible_splits
+		pair = parts.slice( i - 1 , 2 )
+		if combination.include?(i)
+			probabilities << get_pair_coexistence_probability( pair , true)
+		else
+			probabilities << get_pair_coexistence_probability( pair , false)
+		end
+	end
 	score = probabilities.inject(:*)
 	score
 end
 
 
-def has_illegal_syllable?(permutation)
-	x = permutation.split("-").select{|syllable| $syllable_existence_frequencies_hash[syllable].to_i == 0 }.size > 0
-end
-
 def get_precomputed_score( hyphenated_word , permutation , combination)
 	parts = hyphenated_word.split("-")
 	max_possible_splits = parts.size - 1
 	probabilities = []
-	ap "#{permutation}   :   #{combination.inspect}"
 	for i in 1..max_possible_splits
 		pair = parts.slice( i - 1 , 2 )
 		if combination.include?(i)
-			probabilities << $correlation_quantities_hash[pair.join("<=>")][4].to_f rescue 0.0
+			probabilities << $correlation_quantities_hash[pair.join("<=>")][3].to_f rescue 0.0
 		else
-			probabilities <<  $correlation_quantities_hash[pair.join("<=>")][3].to_f rescue 0
+			probabilities <<  $correlation_quantities_hash[pair.join("<=>")][4].to_f rescue 0
 		end
 	end
 	score = probabilities.inject(:*)
 	return score
 end
 
-ap syllabify("હાથકડી")
+# ap syllabify("હાથકડી")

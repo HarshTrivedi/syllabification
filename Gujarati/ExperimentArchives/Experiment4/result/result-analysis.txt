@@ -1,6 +1,6 @@
 -----------------
 -----Final-------
-Correctly tagged word are: 5988 from total of 6491
-Percentage of correctly tagged words  : 0.9225080881220151
-Correctly tagged characters are: 34666 from total of 35444
-Percentage of correctly tagged words  : 0.9780498815032164
+Correctly tagged word are: 6013 from total of 6491
+Percentage of correctly tagged words  : 0.9263595747958712
+Correctly tagged characters are: 34691 from total of 35444
+Percentage of correctly tagged words  : 0.9787552195011849

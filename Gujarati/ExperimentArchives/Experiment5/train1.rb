@@ -80,6 +80,8 @@ end
 
 rows = []
 
+ap pairs.size
+
 pairs.each_with_index do |pair , index|
 	row = []
 	row << pair

@@ -80,6 +80,8 @@ end
 
 rows = []
 
+ap pairs.size
+
 pairs.each_with_index do |pair , index|
 	row = []
 	row << pair
@@ -92,7 +94,7 @@ end
 
 
 
-CSV.open( File.join( $experiment_root , "model_files" , "correlation_quantities.csv" ) , 'w') do |csv_object|
+CSV.open( File.join( $experiment_root , "model_files" , "correlation_quantities1.csv" ) , 'w') do |csv_object|
 	rows.each do |row_array|
 		csv_object << row_array
 	end

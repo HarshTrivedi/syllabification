@@ -166,9 +166,9 @@ def get_precomputed_score( hyphenated_word , permutation , combination)
 	for i in 1..max_possible_splits
 		pair = parts.slice( i - 1 , 2 )
 		if combination.include?(i)
-			probabilities << $correlation_quantities_hash[pair.join("<=>")][3].to_f rescue 0.0
+			probabilities << $correlation_quantities_hash[pair.join("<=>")][4].to_f rescue 0.0
 		else
-			probabilities <<  $correlation_quantities_hash[pair.join("<=>")][4].to_f rescue 0
+			probabilities <<  $correlation_quantities_hash[pair.join("<=>")][3].to_f rescue 0
 		end
 	end
 	score = probabilities.inject(:*)

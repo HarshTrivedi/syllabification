@@ -10,16 +10,16 @@ $experiment_root = File.join( directory , ".." )
 
 ####
 
-correlation_quantities_array = CSV.read( File.join( $experiment_root , "model_files" , "correlation_quantities.csv")  )
-$correlation_quantities_hash = {}
-for correlation_quantity in correlation_quantities_array
-	correlation = correlation_quantity.first
-	correlation_quantity.shift
-	$correlation_quantities_hash[correlation] = correlation_quantity
-end
+# correlation_quantities_array = CSV.read( File.join( $experiment_root , "model_files" , "correlation_quantities.csv")  )
+# $correlation_quantities_hash = {}
+# for correlation_quantity in correlation_quantities_array
+# 	correlation = correlation_quantity.first
+# 	correlation_quantity.shift
+# 	$correlation_quantities_hash[correlation] = correlation_quantity
+# end
 
 
-####
+# ####
 
 syllable_existence_frequencies_array = CSV.read( File.join( $experiment_root , "model_files" , "syllable_frequencies.csv")  )
 $syllable_existence_frequencies_hash = Hash.new(0)
