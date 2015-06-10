@@ -1,0 +1,2 @@
+On evaulation: character => [ 56623.0 / 56683.0 ] correct (0.9989414815729584)
+On evaulation: word => [ 10249.0 / 10305.0 ] correct (0.9945657447840854)

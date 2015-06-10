@@ -1,0 +1,6 @@
+On Macro evaulation: character => [ 55189.0 / 56714.0 ] correct (0.9731106957717671)
+On Micro evaulation: character => (0.9731041650646348)
+On Macro evaulation: word => [ 9090.0 / 10310.0 ] correct (0.8816682832201745)
+On Micro evaulation: word => (0.8816682832201745)
+On Macro evaulation: syllable => [ 22983.0 / 25211.0 ] correct (0.9116258775931141)
+On Micro evaulation: syllable => (0.9115996634866665)
